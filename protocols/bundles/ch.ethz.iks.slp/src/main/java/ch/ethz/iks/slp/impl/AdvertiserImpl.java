@@ -9,6 +9,8 @@
  * Contributors:
  *    Jan S. Rellermeyer - initial API and implementation
  *    Markus Alexander Kuppe - enhancements and bug fixes
+ *    Md.Jamal MohiUddin (Ubiquitous Computing, C-DAC Hyderabad) - IPv6 support
+ *    P Sowjanya (Ubiquitous Computing, C-DAC Hyderabad) - IPv6 support
  *
 *****************************************************************************/
 package ch.ethz.iks.slp.impl;
@@ -112,6 +114,7 @@ public final class AdvertiserImpl implements Advertiser {
 				.getServiceType(), scopes, SLPUtils.dictToAttrList(attributes),
 				locale);
 		try {
+			SLPCore.initMulticastSocket(url);
 			reg.address = InetAddress.getLocalHost();
 		} catch (UnknownHostException e) {
 			reg.address = SLPCore.getMyIP();

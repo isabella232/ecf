@@ -9,6 +9,8 @@
  * Contributors:
  *    Jan S. Rellermeyer - initial API and implementation
  *    Markus Alexander Kuppe - enhancements and bug fixes
+ *    Md.Jamal MohiUddin (Ubiquitous Computing, C-DAC Hyderabad) - IPv6 support
+ *    P Sowjanya (Ubiquitous Computing, C-DAC Hyderabad) - IPv6 support
  *
 *****************************************************************************/
 package ch.ethz.iks.slp;
@@ -65,6 +67,7 @@ public final class ServiceLocationManager extends SLPCore {
 		init();
 		if (locator != null) {
 			try {
+				//TODO::We have to Initialize the Multicast Socket for UA also for receiving DA Advt Messages
 				return (Locator) locator.newInstance(new Object[] { locale });
 			} catch (Exception e) {
 				throw new ServiceLocationException(
@@ -90,7 +93,6 @@ public final class ServiceLocationManager extends SLPCore {
 	public static Advertiser getAdvertiser(final Locale locale)
 			throws ServiceLocationException {
 		init();
-		SLPCore.initMulticastSocket();
 		if (advertiser != null) {
 			try {
 				return (Advertiser) advertiser

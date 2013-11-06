@@ -9,6 +9,8 @@
  * Contributors:
  *    Jan S. Rellermeyer - initial API and implementation
  *    Markus Alexander Kuppe - enhancements and bug fixes
+ *    Md.Jamal MohiUddin (Ubiquitous Computing, C-DAC Hyderabad) - IPv6 support
+ *    P Sowjanya (Ubiquitous Computing, C-DAC Hyderabad) - IPv6 support
  *
 *****************************************************************************/
 package ch.ethz.iks.slp.impl;
@@ -22,6 +24,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import ch.ethz.iks.slp.ServiceType;
+import ch.ethz.iks.slp.ServiceURL;
 
 /**
  * Utility class.
@@ -243,5 +248,52 @@ final class SLPUtils {
 			return (attr.length == attrIndex || attr[attrIndex] != val[valIndex]) ? false
 					: equalsWithWildcard(val, ++valIndex, attr, ++attrIndex);
 		}
+	}
+	
+	static String hash(ServiceURL aURL) {
+		String service = extractService(aURL.toString());
+		return hash(service);
+	}
+
+	static String hash(ServiceType aType) {
+		String service = extractService(aType.toString());
+		return hash(service);
+	}
+	
+	/* Hash Algorithm for SLP Service Type String(RFC 3111) */
+	private static String hash(String pc) {
+		String ip = "FF02::1:1";
+		
+		/*
+		 * An unsigned 32-bit value v is initialized to 0.Each byte of the
+		 * character is considered consecutively
+		 */
+		int h = 0;
+
+		for (int i = 0; i < pc.length(); i++) {
+			/*
+			 * The current value v is multiplied by 33.then the value of the
+			 * current string byte is added ,Each byte in the service type
+			 * string is processed in this manner
+			 */
+			h *= 33;
+			h += pc.charAt(i);
+		}
+		/* The result is contained in the low order 10 bits of v */
+		int j = (0x3ff & h);
+		// Concatenating the value with the IP
+		return ip + Integer.toHexString(j);
+	}
+
+	private static String extractService(String url) {
+		int position = url.indexOf(':', 0);
+		if (position == -1) {
+			return url;
+		}
+		position = url.indexOf(':', position + 1);
+		if (position == -1) {
+			return url;
+		}
+		return url.substring(0, position);
 	}
 }

@@ -9,6 +9,8 @@
  * Contributors:
  *    Jan S. Rellermeyer - initial API and implementation
  *    Markus Alexander Kuppe - enhancements and bug fixes
+ *    Md.Jamal MohiUddin (Ubiquitous Computing, C-DAC Hyderabad) - IPv6 support
+ *    P Sowjanya (Ubiquitous Computing, C-DAC Hyderabad) - IPv6 support
  *
 *****************************************************************************/
 
@@ -41,6 +43,7 @@ import java.util.Map;
 
 import ch.ethz.iks.slp.ServiceLocationException;
 import ch.ethz.iks.slp.ServiceType;
+import ch.ethz.iks.slp.ServiceURL;
 
 /**
  * the core class of the jSLP implementation.
@@ -77,10 +80,40 @@ public abstract class SLPCore {
 	 */
 	static final String SLP_MCAST_ADDRESS = "239.255.255.253";
 
+	
+	/**
+	 * SVRLOC multicast group id is for receiving
+	 * Attribute Request and Service Type Request
+	 * Messages	
+	 */
+	static final String SLP_SVRLOC = "FF02::123";
+
 	/**
 	 * 
 	 */
-	static final InetAddress MCAST_ADDRESS;
+	static final InetAddress SVRLOC = null;
+
+	/**
+	 * SVRLOC-DA group is used for receiving DA Advertisements
+	 */
+	static final String SLP_SVRLOC_DA = "FF02::116";
+
+	/**
+	 * 
+	 */
+	static final InetAddress DA_ADDRESS;
+
+	static final InetAddress SVRLOC_ADDRESS;
+
+	/**
+	 * Service Request Multicast Group Id
+	 */
+	static final String SLP_ServiceRqst = "";
+
+	/**
+	 * 
+	 */
+	static InetAddress serviceRqst = null;
 
 	/**
 	 * the SLP configuration.
@@ -257,14 +290,17 @@ public abstract class SLPCore {
 		// initialize the XID with a random number
 		nextXid = (short) Math.round(Math.random() * Short.MAX_VALUE);
 
-		InetAddress mcast = null;
+		InetAddress SVRLOC=null;
+		InetAddress SVRLOC_DA=null;
 		try {
-			mcast = InetAddress.getByName(SLPCore.SLP_MCAST_ADDRESS);
+			SVRLOC    = InetAddress.getByName(SLPCore.SLP_SVRLOC); 
+ 			SVRLOC_DA = InetAddress.getByName(SLPCore.SLP_SVRLOC_DA);
 		} catch (UnknownHostException e1) {
 			e1.printStackTrace();
 		}
 
-		MCAST_ADDRESS = mcast;
+		DA_ADDRESS=SVRLOC_DA;
+		SVRLOC_ADDRESS=SVRLOC;
 	}
 
 	protected static void init() {
@@ -327,8 +363,14 @@ public abstract class SLPCore {
 	}
 
 	// a pure UA doesn't need a multicast listener which is only required by a SA or DA
-	protected static void initMulticastSocket() {
+	protected static void initMulticastSocket(ServiceURL aUrl) {
 		if(isMulticastSocketInitialized) {
+			try {
+				serviceRqst = InetAddress.getByName(SLPUtils.hash(aUrl));
+				mtcSocket.joinGroup(serviceRqst);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			return;
 		}
 		isMulticastSocketInitialized = true;
@@ -343,7 +385,10 @@ public abstract class SLPCore {
 					platform.logDebug("Setting multicast socket interface to " + myIPs[0] + " failed.",t);
 				}
 			}
-			mtcSocket.joinGroup(MCAST_ADDRESS);
+			mtcSocket.joinGroup(SVRLOC_ADDRESS);
+			mtcSocket.joinGroup(DA_ADDRESS);
+			serviceRqst = InetAddress.getByName(SLPUtils.hash(aUrl));
+			mtcSocket.joinGroup(serviceRqst);
 		} catch (BindException be) {
 			platform.logError(be.getMessage(), be);
 			throw new RuntimeException("You have to be root to open port "
@@ -614,11 +659,11 @@ public abstract class SLPCore {
 						SLP_DA_TYPE), scopes, null, SLPCore.DEFAULT_LOCALE);
 				sreq.xid = SLPCore.nextXid();
 				sreq.scopeList = scopes;
-				sreq.address = MCAST_ADDRESS;
+				sreq.address = DA_ADDRESS;
 				sreq.multicast = true;
 				byte[] bytes = sreq.getBytes();
 				DatagramPacket d = new DatagramPacket(bytes, bytes.length,
-						MCAST_ADDRESS, SLP_PORT);
+						DA_ADDRESS, SLP_PORT);
 				platform.logTraceMessage("SENT " + sreq + "(udp multicast)");
 				setupReceiverThread(socket, CONFIG.getWaitTime(), sreq);
 				try {
@@ -762,7 +807,7 @@ public abstract class SLPCore {
 		try {
 
 			long start = System.currentTimeMillis();
-
+			InetAddress destination;
 			List replyQueue = new ArrayList();
 			List responders = new ArrayList();
 			List responses = new ArrayList();
@@ -791,8 +836,27 @@ public abstract class SLPCore {
 					throw e;
 				}
 			}
+			byte type = SLPMessage.getMessageType(msg);
+			switch (type) {
+			case SLPMessage.SRVRQST:
+				ServiceRequest srq = (ServiceRequest) msg;
+				msg.address = InetAddress.getByName(SLPUtils
+						.hash(srq.serviceType));
+				destination = msg.address;
+				break;
 
-			msg.address = MCAST_ADDRESS;
+			case SLPMessage.ATTRRQST:
+			case SLPMessage.SRVTYPERQST:
+				msg.address = SVRLOC_ADDRESS;
+				destination = msg.address;
+				break;
+
+			default:
+				System.out
+						.println("\n Unknown request Message has been received"
+								+ SLPMessage.getType(type));
+				return null;
+			}
 			ReplyMessage reply;
 
 			for (int i = 0; i < myIPs.length; i++) {
@@ -833,8 +897,7 @@ public abstract class SLPCore {
 
 					// send the message
 					DatagramPacket p = new DatagramPacket(message,
-							message.length, InetAddress
-									.getByName(SLP_MCAST_ADDRESS), SLP_PORT);
+							message.length, destination, SLP_PORT);
 
 					try {
 						socket.send(p);

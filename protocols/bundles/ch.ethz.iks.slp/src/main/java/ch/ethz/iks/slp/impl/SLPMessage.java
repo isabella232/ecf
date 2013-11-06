@@ -9,6 +9,8 @@
  * Contributors:
  *    Jan S. Rellermeyer - initial API and implementation
  *    Markus Alexander Kuppe - enhancements and bug fixes
+ *    Md.Jamal MohiUddin (Ubiquitous Computing, C-DAC Hyderabad) - IPv6 support
+ *    P Sowjanya (Ubiquitous Computing, C-DAC Hyderabad) - IPv6 support
  *
 *****************************************************************************/
 package ch.ethz.iks.slp.impl;
@@ -492,5 +494,13 @@ public abstract class SLPMessage {
 		AttributeListVisitor visitor = new AttributeListVisitor();
 		rule.visit(visitor);
 		return visitor.getAttributes();
+	}
+
+	/**
+	 * Returns the Type of The Request Message
+	 * 
+	 */
+	static byte getMessageType(RequestMessage msg) {
+		return msg.funcID;
 	}
 }
