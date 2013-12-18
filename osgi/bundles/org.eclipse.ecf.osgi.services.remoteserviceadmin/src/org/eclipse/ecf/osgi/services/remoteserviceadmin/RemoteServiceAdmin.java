@@ -2030,7 +2030,6 @@ public class RemoteServiceAdmin implements
 			IExtendedRemoteServiceRegistration iersr = (IExtendedRemoteServiceRegistration) remoteRegistration;
 			Map<String, Object> extraProperties = iersr.getExtraProperties();
 			endpointDescriptionProperties = PropertiesUtil.mergeProperties(endpointDescriptionProperties, extraProperties);
-
 		}
 		
 		EndpointDescription endpointDescription = new EndpointDescription(
