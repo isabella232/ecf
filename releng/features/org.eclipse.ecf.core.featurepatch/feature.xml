@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="org.eclipse.ecf.core.featurepatch"
-      label="ECF Filetransfer Patch for Eclipse"
-      version="3.8.0.qualifier"
+      label="ECF Patch for Eclipse Kepler (4.3).  Not needed for Eclipse Luna (4.4)."
+      version="3.8.1.qualifier"
       provider-name="%providerName">
 
    <description url="http://www.eclipse.org/ecf">
       This feature provides a patch update of the ECF Core and Filetransfer
-bundles.  Use this feature to update ECF core, identity, and filetransfer bundles within Eclipse.
+bundles.  Use this feature to update ECF core, identity, and filetransfer bundles within Eclipse Kepler.  Not 
+needed for Eclipse Luna (4.4) or beyond.
    </description>
 
    <copyright>
@@ -26,8 +27,15 @@ Contributors: Composent, Inc. - initial API and implementation
    </license>
 
    <requires>
-      <import feature="org.eclipse.equinox.p2.user.ui" version="0.0.0" patch="true"/>
+      <import feature="org.eclipse.equinox.p2.core.feature" version="0.0.0" patch="true"/>
    </requires>
+
+   <plugin
+         id="org.eclipse.ecf.identity"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
 
    <plugin
          id="org.eclipse.ecf"
@@ -37,14 +45,15 @@ Contributors: Composent, Inc. - initial API and implementation
          unpack="false"/>
 
    <plugin
-         id="org.eclipse.ecf.filetransfer"
+         id="org.eclipse.ecf.ssl"
          download-size="0"
          install-size="0"
          version="0.0.0"
+         fragment="true"
          unpack="false"/>
 
    <plugin
-         id="org.eclipse.ecf.identity"
+         id="org.eclipse.ecf.filetransfer"
          download-size="0"
          install-size="0"
          version="0.0.0"
@@ -58,21 +67,6 @@ Contributors: Composent, Inc. - initial API and implementation
          unpack="false"/>
 
    <plugin
-         id="org.eclipse.ecf.provider.filetransfer.httpclient"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.eclipse.ecf.provider.filetransfer.httpclient.ssl"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         fragment="true"
-         unpack="false"/>
-
-   <plugin
          id="org.eclipse.ecf.provider.filetransfer.ssl"
          download-size="0"
          install-size="0"
@@ -81,11 +75,46 @@ Contributors: Composent, Inc. - initial API and implementation
          unpack="false"/>
 
    <plugin
-         id="org.eclipse.ecf.ssl"
+         id="org.eclipse.ecf.provider.filetransfer.httpclient4"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.ecf.provider.filetransfer.httpclient4.ssl"
          download-size="0"
          install-size="0"
          version="0.0.0"
          fragment="true"
+         unpack="false"/>
+
+   <plugin
+         id="org.apache.commons.codec"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.apache.commons.logging"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.apache.httpcomponents.httpclient"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.apache.httpcomponents.httpcore"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
          unpack="false"/>
 
 </feature>

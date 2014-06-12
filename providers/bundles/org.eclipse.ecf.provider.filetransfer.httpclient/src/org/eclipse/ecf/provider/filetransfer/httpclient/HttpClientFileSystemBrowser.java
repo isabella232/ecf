@@ -15,9 +15,7 @@ package org.eclipse.ecf.provider.filetransfer.httpclient;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.Socket;
 import java.net.URL;
-import java.util.Iterator;
 import java.util.Map;
 import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.Header;
@@ -144,15 +142,7 @@ public class HttpClientFileSystemBrowser extends AbstractFileSystemBrowser {
 			}
 		}
 		if (connectingSockets != null) {
-			// this should unblock socket connect calls, if any
-			for (Iterator iterator = connectingSockets.getConnectingSockets().iterator(); iterator.hasNext();) {
-				Socket socket = (Socket) iterator.next();
-				try {
-					socket.close();
-				} catch (IOException e) {
-					Trace.catching(Activator.PLUGIN_ID, DebugOptions.EXCEPTIONS_CATCHING, this.getClass(), "cancel", e); //$NON-NLS-1$
-				}
-			}
+			connectingSockets.closeSockets();
 		}
 	}
 
@@ -218,8 +208,14 @@ public class HttpClientFileSystemBrowser extends AbstractFileSystemBrowser {
 		// Define a CredentialsProvider - found that possibility while debugging in org.apache.commons.httpclient.HttpMethodDirector.processProxyAuthChallenge(HttpMethod)
 		// Seems to be another way to select the credentials.
 		headMethod.getParams().setParameter(CredentialsProvider.PROVIDER, credProvider);
+		int maxAge = Integer.getInteger("org.eclipse.ecf.http.cache.max-age", 0).intValue(); //$NON-NLS-1$
 		// set max-age for cache control to 0 for bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=249990
-		headMethod.addRequestHeader("Cache-Control", "max-age=0"); //$NON-NLS-1$//$NON-NLS-2$
+		// fix the fix for bug 249990 with bug 410813
+		if (maxAge == 0) {
+			headMethod.addRequestHeader("Cache-Control", "max-age=0"); //$NON-NLS-1$//$NON-NLS-2$
+		} else if (maxAge > 0) {
+			headMethod.addRequestHeader("Cache-Control", "max-age=" + maxAge); //$NON-NLS-1$//$NON-NLS-2$
+		}
 		headMethod.addRequestHeader("Connection", "Keep-Alive"); //$NON-NLS-1$ //$NON-NLS-2$
 
 		long lastModified = 0;
