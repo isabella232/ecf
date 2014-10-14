@@ -9,7 +9,7 @@
  *     CohesionForce Inc - initial API and implementation
  *******************************************************************************/
 
-package org.eclipse.ecf.provider.filetransfer.scp;
+package org.eclipse.ecf.internal.provider.filetransfer.scp;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -22,7 +22,6 @@ import org.eclipse.ecf.filetransfer.*;
 import org.eclipse.ecf.filetransfer.identity.IFileID;
 import org.eclipse.ecf.filetransfer.service.IRemoteFileSystemBrowser;
 import org.eclipse.ecf.filetransfer.service.IRemoteFileSystemBrowserFactory;
-import org.eclipse.ecf.internal.provider.filetransfer.scp.ScpFileSystemBrowser;
 import org.eclipse.ecf.provider.filetransfer.identity.FileTransferNamespace;
 import org.eclipse.osgi.util.NLS;
 

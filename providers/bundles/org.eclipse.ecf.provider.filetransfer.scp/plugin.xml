@@ -18,7 +18,7 @@
    <extension
          point="org.eclipse.ecf.provider.filetransfer.browseFileTransferProtocolFactory">
       <browseFileTransferProtocolFactory
-            class="org.eclipse.ecf.provider.filetransfer.scp.ScpBrowseFileTransferFactory"
+            class="org.eclipse.ecf.internal.provider.filetransfer.scp.ScpBrowseFileTransferFactory"
             priority="45"
             protocol="scp">
       </browseFileTransferProtocolFactory>
