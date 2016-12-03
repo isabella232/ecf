@@ -13,6 +13,7 @@ package org.eclipse.ecf.internal.provider.filetransfer;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,6 +25,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import org.eclipse.core.net.proxy.IProxyService;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.core.runtime.IAdapterManager;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionDelta;
@@ -32,7 +34,10 @@ import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.IRegistryChangeEvent;
 import org.eclipse.core.runtime.IRegistryChangeListener;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.ecf.core.identity.Namespace;
+import org.eclipse.ecf.core.util.ExtensionRegistryRunnable;
 import org.eclipse.ecf.core.util.LogHelper;
 import org.eclipse.ecf.core.util.PlatformHelper;
 import org.eclipse.ecf.filetransfer.service.IRemoteFileSystemBrowser;
@@ -42,7 +47,11 @@ import org.eclipse.ecf.filetransfer.service.IRetrieveFileTransferFactory;
 import org.eclipse.ecf.filetransfer.service.ISendFileTransfer;
 import org.eclipse.ecf.filetransfer.service.ISendFileTransferFactory;
 import org.eclipse.ecf.provider.filetransfer.IFileTransferProtocolToFactoryMapper;
+import org.eclipse.ecf.provider.filetransfer.browse.MultiProtocolFileSystemBrowserAdapterFactory;
+import org.eclipse.ecf.provider.filetransfer.identity.FileTransferNamespace;
+import org.eclipse.ecf.provider.filetransfer.outgoing.MultiProtocolOutgoingAdapterFactory;
 import org.eclipse.ecf.provider.filetransfer.retrieve.MultiProtocolRetrieveAdapter;
+import org.eclipse.ecf.provider.filetransfer.retrieve.MultiProtocolRetrieveAdapterFactory;
 import org.eclipse.osgi.util.NLS;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleActivator;
@@ -269,7 +278,29 @@ public class Activator implements BundleActivator, IFileTransferProtocolToFactor
 		loadProtocolHandlers();
 		// Finally, register this object as a IFileTransferProtocolToFactoryMapper service
 		protocolMapperRegistration = context.registerService(IFileTransferProtocolToFactoryMapper.class.getName(), this, null);
+
+		SafeRunner.run(new ExtensionRegistryRunnable(this.context) {
+			protected void runWithoutRegistry() throws Exception {
+				getContext().registerService(Namespace.class, new FileTransferNamespace(), null);
+				IAdapterManager am = getAdapterManager();
+				if (am != null) {
+					rscAdapterFactories = new ArrayList();
+					IAdapterFactory af = new MultiProtocolRetrieveAdapterFactory();
+					am.registerAdapters(af, org.eclipse.ecf.core.BaseContainer.class);
+					rscAdapterFactories.add(af);
+					af = new MultiProtocolOutgoingAdapterFactory();
+					am.registerAdapters(af, org.eclipse.ecf.core.BaseContainer.class);
+					rscAdapterFactories.add(af);
+					af = new MultiProtocolFileSystemBrowserAdapterFactory();
+					am.registerAdapters(af, org.eclipse.ecf.core.BaseContainer.class);
+					rscAdapterFactories.add(af);
+				}
+			}
+		});
+
 	}
+
+	private List rscAdapterFactories;
 
 	public boolean reinitialize() {
 		try {
@@ -327,7 +358,14 @@ public class Activator implements BundleActivator, IFileTransferProtocolToFactor
 			this.protocolMapperRegistration.unregister();
 			this.protocolMapperRegistration = null;
 		}
-
+		if (rscAdapterFactories != null) {
+			IAdapterManager am = getAdapterManager();
+			if (am != null) {
+				for (Iterator i = rscAdapterFactories.iterator(); i.hasNext();)
+					am.unregisterAdapters((IAdapterFactory) i.next());
+			}
+			rscAdapterFactories = null;
+		}
 		synchronized (this) {
 			this.context = null;
 		}

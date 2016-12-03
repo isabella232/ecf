@@ -28,6 +28,10 @@ public class FileTransferNamespace extends Namespace {
 
 	public static final String PROTOCOL = Messages.FileTransferNamespace_Namespace_Protocol;
 
+	public FileTransferNamespace() {
+		super("ecf.provider.filetransfer", "ECF File Transfer Provider Namespace"); //$NON-NLS-1$ //$NON-NLS-2$
+	}
+
 	private String getInitFromExternalForm(Object[] args) {
 		if (args == null || args.length < 1 || args[0] == null)
 			return null;
@@ -93,7 +97,7 @@ public class FileTransferNamespace extends Namespace {
 	 * @see org.eclipse.ecf.core.identity.Namespace#getSupportedParameterTypesForCreateInstance()
 	 */
 	public Class[][] getSupportedParameterTypes() {
-		return new Class[][] { {URL.class}, {String.class}};
+		return new Class[][] {{URL.class}, {String.class}};
 	}
 
 }
