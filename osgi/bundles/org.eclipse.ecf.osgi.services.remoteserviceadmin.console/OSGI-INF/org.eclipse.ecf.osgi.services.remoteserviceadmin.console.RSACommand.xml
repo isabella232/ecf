@@ -19,7 +19,7 @@ updsvc
    </property>
    <service>
       <provide interface="org.eclipse.ecf.osgi.services.remoteserviceadmin.console.RSACommand"/>
-      <provide interface="org.apache.felix.service.command.Converter"/>
+      <provide interface="Converter"/>
    </service>
    <reference bind="bindContainerManager" interface="org.eclipse.ecf.core.IContainerManager" name="ContainerManager" unbind="unbindContainerManager"/>
    <reference bind="bindIDFactory" interface="org.eclipse.ecf.core.identity.IIDFactory" name="IDFactory" unbind="unbindIDFactory"/>
