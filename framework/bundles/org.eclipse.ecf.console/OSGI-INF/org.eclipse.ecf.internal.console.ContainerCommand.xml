@@ -12,7 +12,7 @@ lcfgs
    </property>
    <service>
       <provide interface="org.eclipse.ecf.internal.console.ContainerCommand"/>
-      <provide interface="org.apache.felix.service.command.Converter"/>
+      <provide interface="Converter"/>
    </service>
    <reference bind="bindContainerManager" interface="org.eclipse.ecf.core.IContainerManager" name="ContainerManager" unbind="unbindContainerManager"/>
    <reference bind="bindIdentityFactory" interface="org.eclipse.ecf.core.identity.IIDFactory" name="IdentityFactory" unbind="unbindIdentityFactory"/>
